@@ -58,3 +58,25 @@ def delete_phone():
     db.session.commit()
 
     return f"""<h1>Phone number {real_phone.phone} was deleted for contact {contact.name}</h1>"""
+
+
+@app.route('/address_book/phones', methods=['PATCH'])
+def change_phone():
+
+    old_phone = request.args.get('phone')
+    new_phone = request.json['phone']
+
+    real_phone = Phone.query.filter(Phone.phone == old_phone).first_or_404()
+    contact = Contact.query.filter_by(id=real_phone.contact_id).first()
+
+    check_phone = re.search(
+        r"\([0-9]{2}\)\-[0-9]{3}\-[0-9]{1}\-[0-9]{3}|\([0-9]{2}\)\-[0-9]{3}\-[0-9]{2}\-[0-9]{2}", new_phone)
+
+    if not check_phone:
+        f"""<h1>Phone should be of these formats: (00)-000-0-000 or (00)-000-00-00</h1>"""
+
+    db.session.query(Phone).filter_by(
+        phone=old_phone).update({'phone': new_phone})
+    db.session.commit()
+
+    return f"""<h1>{old_phone} was changed to {new_phone} for contact {contact.name}</h1>"""
