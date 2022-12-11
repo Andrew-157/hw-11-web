@@ -50,7 +50,7 @@ def create_user():
 
 
 @app.route('/address_book/phones/<int:user_id>', methods=['POST', 'DELETE'])
-def add_phone(user_id):
+def edit_phone(user_id):
 
     contact = Contact.query.filter_by(id=user_id).first()
 
@@ -103,3 +103,48 @@ def delete_phone():
     db.session.commit()
 
     return f"""<h1>Phone number {real_phone.phone} was deleted for contact {contact.name}</h1>"""
+
+
+@app.route('/address_book/contacts/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
+def get_contact(user_id):
+
+    contact = Contact.query.filter_by(id=user_id).first_or_404()
+
+    if request.method == 'DELETE':
+
+        contact = Contact.query.filter(Contact.id == user_id).first()
+        db.session.delete(contact)
+        db.session.commit()
+
+        return f"""<h1>User {contact.name} was deleted</h1>"""
+
+    if request.method == 'PUT':
+
+        name = request.json['name']
+        email = request.json['email']
+
+        check_email = re.search(
+            r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+", email)
+
+        if not check_email:
+            old_name = contact.name
+            db.session.query(Contact).filter_by(
+                id=user_id).update({'name': name})
+            db.session.commit()
+            return f"""<h1>Contact {old_name} was changed to {name}, but {email} is of the wrong format</h1>"""
+
+        old_name = contact.name
+        old_email = contact.email
+        db.session.query(Contact).filter_by(
+            id=user_id).update({'name': name, 'email': email})
+        db.session.commit()
+        return f"""<h1>Contact {old_name} was changed to {name}, {old_email if not old_email else "NO EMAIL"} was changed to {email}</h1>"""
+
+    return f"""<h1>Contact name: {contact.name},\nContact email: {"No email" if not contact.email else contact.email},\nContact phones: {Phone.query.filter_by(contact_id=user_id).all()}</h1>"""
+
+
+def contact():
+
+    name = request.args.get['name']
+    email = request.args.get['email']
+    phone = request.args.get['phone']
