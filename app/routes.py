@@ -88,3 +88,18 @@ def add_phone(user_id):
             db.session.commit()
 
         return f"""<h1>Phone numbers for {contact.name} were deleted</h1>"""
+
+
+@app.route('/address_book/phones', methods=['DELETE'])
+def delete_phone():
+
+    phone = request.args.get('phone')
+
+    real_phone = Phone.query.filter(Phone.phone == phone).first_or_404()
+
+    contact = Contact.query.filter(Contact.id == real_phone.contact_id).first()
+
+    db.session.delete(real_phone)
+    db.session.commit()
+
+    return f"""<h1>Phone number {real_phone.phone} was deleted for contact {contact.name}</h1>"""
