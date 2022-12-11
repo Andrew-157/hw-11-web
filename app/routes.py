@@ -7,3 +7,8 @@ from app.models import Contact, Phone, db
 def welcome_func():
     return """
                 <h1>Welcome to you Address Book<h1>"""
+
+
+@app.route('/address_book/contacts', methods=['POST'])
+def create_user():
+    pass
